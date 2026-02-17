@@ -61,7 +61,12 @@ class BalanceService {
      */
     _calculateTracking(fund, payments) {
         const monthlyTarget = Number(fund.total_amount) / Number(fund.duration);
-        const startDate = new Date(fund.start_date);
+        let startDate = new Date(fund.start_date);
+
+        if (isNaN(startDate.getTime())) {
+            console.warn(`[BalanceService] Invalid start_date for fund ${fund.id || fund.fund_id}. Defaulting to current date.`);
+            startDate = new Date();
+        }
 
         let carryForward = 0;
         const months = [];

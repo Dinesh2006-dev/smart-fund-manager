@@ -12,14 +12,57 @@ router.post('/', auth, async (req, res) => {
         // Security check: Users can only add payments for themselves, Admins can add for anyone
         const finalUserId = req.user.role === 'admin' ? user_id : req.user.id;
 
-        // Auto-detect month if not provided
+        // Auto-detect month if not detecting
         const finalMonth = payment_month || new Date(payment_date).toISOString().slice(0, 7);
+
+        // --- Validation: Enforce Consistent Payment Mode per Month ---
+        console.log(`[Validation] Checking for existing payments: User ${finalUserId}, Fund ${fund_id}, Month ${finalMonth}`);
+
+        const existingPayments = await db('payments')
+            .where({ user_id: finalUserId, fund_id, payment_month: finalMonth })
+            .select('payment_schedule');
+
+        if (existingPayments.length > 0) {
+            const existingMode = existingPayments[0].payment_schedule.toLowerCase();
+            const newMode = (payment_schedule || 'monthly').toLowerCase();
+
+            console.log(`[Validation] Found ${existingPayments.length} records. Mode: ${existingMode}. New Mode: ${newMode}`);
+
+            if (existingMode !== newMode) {
+                console.warn(`[Validation] Blocked! Mismatch: ${existingMode} vs ${newMode}`);
+                return res.status(400).json({
+                    message: `Payment Mode Mismatch! You have already started paying for ${finalMonth} using '${existingMode.toUpperCase()}' mode. You cannot switch to '${newMode.toUpperCase()}' for this month.`
+                });
+            }
+
+            // --- Validation: Limit Payments per Schedule ---
+            let limit = 0;
+            const [y, m] = finalMonth.split('-').map(Number);
+            const daysInMonth = new Date(y, m, 0).getDate();
+
+            if (existingMode === 'monthly') {
+                limit = 1;
+            } else if (existingMode === 'weekly') {
+                limit = Math.ceil(daysInMonth / 7);
+            } else if (existingMode === 'daily') {
+                limit = daysInMonth;
+            }
+
+            if (existingPayments.length >= limit) {
+                return res.status(400).json({
+                    message: `Payment Limit Reached! You have already made ${existingPayments.length} payments this month. The limit for '${existingMode}' mode is ${limit}.`
+                });
+            }
+            // -----------------------------------------------
+        }
+        // -------------------------------------------------------------
 
         // 1. Record the payment
         const [paymentId] = await db('payments').insert({
             user_id: finalUserId,
             fund_id,
             amount,
+            penalty: req.body.penalty || 0, // Store penalty
             payment_date,
             payment_month: finalMonth,
             payment_schedule: payment_schedule || 'monthly',
@@ -118,6 +161,31 @@ router.delete('/:id', auth, admin, async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting payment' });
+    }
+});
+
+// Check if a payment mode is already set for a specific month
+router.get('/check-mode', auth, async (req, res) => {
+    try {
+        const { fund_id, payment_month } = req.query;
+        const user_id = req.user.id;
+
+        if (!fund_id || !payment_month) {
+            return res.status(400).json({ message: 'Missing fund_id or payment_month' });
+        }
+
+        const existingPayment = await db('payments')
+            .where({ user_id, fund_id, payment_month })
+            .first();
+
+        if (existingPayment) {
+            return res.json({ mode: existingPayment.payment_schedule });
+        }
+
+        res.json({ mode: null });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error checking payment mode' });
     }
 });
 

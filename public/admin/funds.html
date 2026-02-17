@@ -100,6 +100,7 @@
                 </div>
                 <div class="modal-body">
                     <form id="fundForm">
+                        <input type="hidden" id="fundId">
                         <div class="mb-3">
                             <label class="form-label">Fund Name</label>
                             <input type="text" id="name" class="form-control" required
@@ -132,6 +133,11 @@
                                 <label class="form-label">End Date</label>
                                 <input type="date" id="end_date" class="form-control">
                             </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Terms & Conditions</label>
+                            <textarea id="terms" class="form-control" rows="4"
+                                placeholder="Enter fund-specific terms and conditions here..."></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary w-100">Save Fund</button>
                     </form>
@@ -238,7 +244,10 @@
                 tbody.innerHTML = funds.map(f => `
                     <tr>
                         <td>
-                            <div class="fw-bold text-navy">${f.name}</div>
+                            <div class="fw-bold text-navy">
+                                ${f.name} 
+                                ${f.terms ? '<i class="bi bi-file-earmark-text-fill text-info ms-1" title="Terms & Conditions Applied"></i>' : ''}
+                            </div>
                             <div class="small text-muted">Ref: #${f.id}</div>
                         </td>
                         <td class="fw-bold">₹${f.total_amount.toLocaleString()}</td>
@@ -303,26 +312,66 @@
             });
         }
 
-        function editFund(id) {
-            alert('Edit functionality can be implemented by filling the modal with fund data.');
+        async function editFund(id) {
+            try {
+                const funds = await apiRequest('/funds', 'GET', null, Auth.getToken());
+                const fund = funds.find(f => f.id === id);
+                if (!fund) return alert('Fund not found');
+
+                document.getElementById('fundId').value = fund.id;
+                document.getElementById('name').value = fund.name;
+                document.getElementById('total_amount').value = fund.total_amount;
+                document.getElementById('duration').value = fund.duration;
+                document.getElementById('type').value = fund.type;
+                document.getElementById('start_date').value = fund.start_date ? fund.start_date.split('T')[0] : '';
+                document.getElementById('end_date').value = fund.end_date ? fund.end_date.split('T')[0] : '';
+                document.getElementById('terms').value = fund.terms || '';
+
+                document.querySelector('#fundModal .modal-title').textContent = 'Edit Fund';
+                document.querySelector('#fundForm button[type="submit"]').textContent = 'Update Fund';
+
+                new bootstrap.Modal(document.getElementById('fundModal')).show();
+            } catch (err) {
+                alert(err.message);
+            }
         }
+
+        // Reset form on modal close
+        document.getElementById('fundModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('fundForm').reset();
+            document.getElementById('fundId').value = '';
+            document.querySelector('#fundModal .modal-title').textContent = 'Create New Fund';
+            document.querySelector('#fundForm button[type="submit"]').textContent = 'Save Fund';
+        });
 
         document.getElementById('fundForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const id = document.getElementById('fundId').value;
+
             const formData = {
                 name: document.getElementById('name').value,
                 total_amount: document.getElementById('total_amount').value,
                 duration: document.getElementById('duration').value,
                 type: document.getElementById('type').value,
                 start_date: document.getElementById('start_date').value,
-                end_date: document.getElementById('end_date').value
+                end_date: document.getElementById('end_date').value,
+                terms: document.getElementById('terms').value
             };
 
             try {
-                await apiRequest('/funds', 'POST', formData, Auth.getToken());
+                if (id) {
+                    await apiRequest(`/funds/${id}`, 'PUT', formData, Auth.getToken());
+                    Toast.fire({ icon: 'success', title: 'Fund updated successfully' });
+                } else {
+                    await apiRequest('/funds', 'POST', formData, Auth.getToken());
+                    Toast.fire({ icon: 'success', title: 'Fund created successfully' });
+                }
+
                 bootstrap.Modal.getInstance(document.getElementById('fundModal')).hide();
                 loadFunds();
-            } catch (err) { alert(err.message); }
+            } catch (err) {
+                Swal.fire('Error', err.message, 'error');
+            }
         });
 
         async function viewMembers(fundId, fundName) {

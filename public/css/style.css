@@ -1,28 +1,44 @@
 :root {
     /* Premium Fintech Palette */
-    --primary: #0047FF;         /* Radiant Blue */
+    --primary: #0047FF;
+    /* Radiant Blue */
     --primary-dark: #0032B2;
     --primary-light: #E6EDFF;
-    
-    --secondary: #00C853;       /* Emerald Green (Growth/Economic) */
-    --accent: #FFAB00;          /* Gold Accent (Wealth) */
-    
-    --navy: #0A192F;            /* Deep Space Navy */
+
+    --secondary: #00C853;
+    /* Emerald Green (Growth/Economic) */
+    --accent: #FFAB00;
+    /* Gold Accent (Wealth) */
+
+    --navy: #0A192F;
+    /* Deep Space Navy */
     --navy-light: #112240;
     --navy-lighter: #233554;
-    
+
     --text-main: #FFFFFF;
     --text-muted: #8892B0;
     --text-dark: #1F2937;
-    
+
     --background: #F8FAFC;
     --glass: rgba(255, 255, 255, 0.8);
     --glass-border: rgba(255, 255, 255, 0.2);
-    
+
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] {
+    --primary: #3B82F6;
+    --primary-light: #1E3A8A;
+    --navy: #0F172A;
+    --text-dark: #F3F4F6;
+    --text-muted: #9CA3AF;
+    --background: #111827;
+    /* Dark Gray bg */
+    --glass: rgba(17, 24, 39, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
 }
 
 /* Base Styles */
@@ -37,8 +53,8 @@ body {
 /* Premium Gradients */
 .bg-premium {
     background: radial-gradient(circle at 10% 20%, rgba(0, 71, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%),
-                radial-gradient(circle at 90% 80%, rgba(0, 200, 83, 0.05) 0%, rgba(255, 255, 255, 0) 100%),
-                var(--background);
+        radial-gradient(circle at 90% 80%, rgba(0, 200, 83, 0.05) 0%, rgba(255, 255, 255, 0) 100%),
+        var(--background);
     min-height: 100vh;
 }
 
@@ -166,6 +182,7 @@ body {
         opacity: 0;
         transform: translateY(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -191,8 +208,13 @@ body {
     padding: 1rem;
 }
 
-.smart-table tr td:first-child { border-radius: 12px 0 0 12px; }
-.smart-table tr td:last-child { border-radius: 0 12px 12px 0; }
+.smart-table tr td:first-child {
+    border-radius: 12px 0 0 12px;
+}
+
+.smart-table tr td:last-child {
+    border-radius: 0 12px 12px 0;
+}
 
 .smart-table tr:hover td {
     background: #F8FAFC;

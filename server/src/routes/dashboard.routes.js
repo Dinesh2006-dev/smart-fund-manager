@@ -86,15 +86,42 @@ router.get('/user/summary', auth, async (req, res) => {
 
             const currentMonthData = await balanceService.getCurrentMonthBalance(userId, f.fund_id);
 
-            // Calculate simple next due date
+            // Calculate next due date based on schedule
             const intervalsPaid = Math.floor(Number(f.total_paid) / monthlyTarget);
+
             let nextDue = new Date(f.start_date);
+            // Safety check for invalid start_date
+            if (isNaN(nextDue.getTime())) {
+                nextDue = new Date(); // Fallback to now if invalid
+            }
+
             nextDue.setMonth(nextDue.getMonth() + intervalsPaid);
+
+            let displayDueDate = '';
+            const schedule = f.payment_schedule || 'monthly';
+
+            if (schedule === 'monthly') {
+                // Monthly: Due date is the 5th of the month
+                nextDue.setDate(5);
+                displayDueDate = nextDue.toISOString().split('T')[0];
+            } else if (schedule === 'weekly') {
+                // Weekly: Due every Sunday
+                const today = new Date();
+                const dayOfWeek = today.getDay(); // 0 = Sunday
+                const daysUntilSunday = (7 - dayOfWeek) % 7;
+                const nextSunday = new Date(today);
+                nextSunday.setDate(today.getDate() + daysUntilSunday);
+                displayDueDate = nextSunday.toISOString().split('T')[0];
+            } else {
+                // Daily or others
+                displayDueDate = 'Daily';
+            }
 
             return {
                 ...f,
                 progress: Math.min(progress, 100).toFixed(2),
-                next_due_date: nextDue.toISOString().split('T')[0],
+                next_due_date: displayDueDate,
+                next_due_month: nextDue.toISOString().slice(0, 7),
                 overdueMonths: overdue,
                 currentMonthBalance: currentMonthData.balance,
                 currentMonth: currentMonthData.month,

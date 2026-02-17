@@ -1,8 +1,13 @@
 const express = require('express');
+require('dotenv').config(); // Load env vars BEFORE anything else
 const cors = require('cors');
 const morgan = require('morgan');
 const { initDb } = require('./src/config/db.js');
-require('dotenv').config();
+
+console.log('--- ENV DEBUG ---');
+console.log('EMAIL_HOST:', process.env.EMAIL_HOST);
+console.log('EMAIL_USER:', process.env.EMAIL_USER);
+console.log('-----------------');
 
 const app = express();
 const PORT = process.env.PORT || 5000;

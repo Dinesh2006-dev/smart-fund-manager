@@ -44,6 +44,52 @@ router.post('/assign-fund', auth, admin, async (req, res) => {
     }
 });
 
+// Get User Financial Report (Admin Only)
+router.get('/:id/report', auth, admin, async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { fund_id } = req.query;
+
+        const user = await db('users').where({ id: userId }).first();
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        let fundsQuery = db('user_funds as uf')
+            .join('funds as f', 'uf.fund_id', 'f.id')
+            .where('uf.user_id', userId)
+            .select(
+                'f.id as fund_id', 'f.name as fund_name', 'f.total_amount', 'f.start_date', 'f.duration',
+                'uf.total_paid', 'uf.pending_balance', 'uf.status', 'uf.joined_at'
+            );
+
+        if (fund_id) {
+            fundsQuery = fundsQuery.where('f.id', fund_id);
+        }
+
+        const funds = await fundsQuery;
+
+        // Fetch payments
+        let paymentsQuery = db('payments')
+            .where('user_id', userId)
+            .orderBy('payment_date', 'desc');
+
+        if (fund_id) {
+            paymentsQuery = paymentsQuery.where('fund_id', fund_id);
+        }
+
+        const payments = await paymentsQuery;
+
+        res.json({
+            user: { id: user.id, name: user.name, email: user.email, phone: user.phone },
+            funds,
+            payments
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error generating report' });
+    }
+});
+
 // Delete a User (Admin Only)
 router.delete('/:id', auth, admin, async (req, res) => {
     try {

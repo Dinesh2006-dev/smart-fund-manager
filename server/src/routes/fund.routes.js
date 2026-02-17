@@ -7,7 +7,7 @@ const balanceService = require('../services/balanceService');
 // Create a Fund (Admin Only)
 router.post('/', auth, admin, async (req, res) => {
     try {
-        const { name, total_amount, contribution_amount, duration, type, start_date, end_date } = req.body;
+        const { name, total_amount, contribution_amount, duration, type, start_date, end_date, terms } = req.body;
 
         if (!duration) {
             return res.status(400).json({ message: 'Duration (Terms) is required for tenure-based tracking' });
@@ -20,7 +20,8 @@ router.post('/', auth, admin, async (req, res) => {
             duration,
             type, // daily, weekly, monthly
             start_date,
-            end_date
+            end_date,
+            terms // New field
         });
 
         res.status(201).json({ message: 'Fund created successfully' });
@@ -48,9 +49,17 @@ router.get('/', auth, async (req, res) => {
 // Edit a Fund (Admin Only)
 router.put('/:id', auth, admin, async (req, res) => {
     try {
-        const { name, total_amount, contribution_amount, duration, type, start_date, end_date, status } = req.body;
+        const { name, total_amount, contribution_amount, duration, type, start_date, end_date, terms } = req.body;
+
         await db('funds').where({ id: req.params.id }).update({
-            name, total_amount, contribution_amount, duration, type, start_date, end_date, status
+            name,
+            total_amount,
+            contribution_amount: contribution_amount || null,
+            duration,
+            type,
+            start_date,
+            end_date,
+            terms // Update Logic
         });
         res.json({ message: 'Fund updated successfully' });
     } catch (error) {
@@ -143,10 +152,12 @@ router.post('/join', auth, async (req, res) => {
         // Check if already joined
         const existing = await db('user_funds').where({ user_id, fund_id }).first();
         if (existing) {
+            console.log(`[Join] User ${user_id} already joined fund ${fund_id}`);
             return res.status(400).json({ message: 'You have already joined this fund' });
         }
 
-        await db('user_funds').insert({
+        console.log(`[Join] Inserting record for User ${user_id}, Fund ${fund_id}`);
+        const [id] = await db('user_funds').insert({
             user_id,
             fund_id,
             total_paid: 0,
@@ -154,10 +165,11 @@ router.post('/join', auth, async (req, res) => {
             payment_schedule: payment_schedule || 'monthly',
             status: 'active'
         });
+        console.log(`[Join] Inserted record ID: ${id}`);
 
         res.status(201).json({ message: 'Successfully joined the fund' });
     } catch (error) {
-        console.error(error);
+        console.error('[Join] Error:', error);
         res.status(500).json({ message: 'Error joining fund' });
     }
 });
