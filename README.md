@@ -4,17 +4,16 @@ A comprehensive web application for managing community savings groups (Chit Fund
 
 ## 📂 Project Structure
 
-### `server/`
-The backend API and database logic.
--   **`src/`**: Contains all source code including models, routes, and services.
--   **`database.sqlite`**: The local SQLite database file (not uploaded to git).
--   **`index.js`**: Main entry point for the Node.js server.
+### [`server/`](./server/README.md)
+The backend Node.js server, API routes, and database logic.
+[View detailed server documentation](./server/README.md)
 
-### `public/`
-The frontend user interface.
--   **`admin/`**: Dashboard pages for Fund Managers (Create funds, track users).
--   **`user/`**: Dashboard pages for Members (View progress, make payments).
--   **`css/`** & **`js/`**: Styling and client-side logic.
+### [`public/`](./public/README.md)
+The frontend user interface (HTML/CSS/JS).
+[View detailed frontend documentation](./public/README.md)
+
+### `src/`
+(Inside server) Contains all source code including models, routes, and services.
 
 ## 🚀 Getting Started
 
