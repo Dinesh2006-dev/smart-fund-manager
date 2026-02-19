@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--navy) 0%, #1a1a1a 100%);
+            padding: 1rem 0;
+        }
+
+        .status-completed {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .status-partial {
+            background-color: var(--accent);
+            color: var(--navy);
+        }
+
+        .status-pending {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .grid-cell {
+            font-size: 0.75rem;
+            min-width: 120px;
+            padding: 12px !important;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            background-color: white;
+            z-index: 10;
+            border-right: 3px solid var(--primary-light) !important;
+            font-weight: 700;
+            color: var(--navy);
+        }
+    </style>
+</head>
+
+<body class="bg-premium">
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="dashboard.html">
+                <img src="https://img.icons8.com/isometric/50/coins.png" width="30" class="me-2">Admin Panel
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link fw-medium px-3 text-white-50"
+                            href="dashboard.html">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link active fw-medium px-3 text-white" href="funds.html">Manage
+                            Funds</a></li>
+                </ul>
+                <button class="btn btn-outline-light btn-sm px-3" onclick="Auth.logout()">
+                    <i class="bi bi-box-arrow-right me-1"></i>Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-5 px-5">
+        <div class="d-flex justify-content-between align-items-end mb-4 animate-fade-in">
+            <div>
+                <h1 class="fw-bold mb-1" id="fundTitle">Asset Allocation Grid</h1>
+                <p class="text-muted mb-0" id="targetInfo">Loading fiscal metrics...</p>
+            </div>
+            <button class="btn btn-outline-dark px-4" onclick="window.print()">
+                <i class="bi bi-printer me-2"></i>Print Ledger
+            </button>
+        </div>
+
+        <div class="card glass-card border-0 p-3 animate-fade-in shadow-lg">
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 70vh;">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr id="tableHeader">
+                                <th class="sticky-col bg-light py-3">Member Matrix</th>
+                                <!-- Months will be injected here -->
+                            </tr>
+                        </thead>
+                        <tbody id="trackingBody">
+                            <!-- Data will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-4 animate-fade-in bg-white p-3 rounded-4 shadow-sm d-inline-flex">
+            <div class="d-flex align-items-center"><span class="badge rounded-circle p-2 status-completed me-2"><i
+                        class="bi bi-check-lg"></i></span> <span class="small fw-bold">SETTLED</span></div>
+            <div class="d-flex align-items-center"><span class="badge rounded-circle p-2 status-partial me-2"><i
+                        class="bi bi-clock-history"></i></span> <span class="small fw-bold">PARTIAL</span></div>
+            <div class="d-flex align-items-center"><span class="badge rounded-circle p-2 status-pending me-2"><i
+                        class="bi bi-exclamation-triangle"></i></span> <span class="small fw-bold">OVERDUE</span></div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        if (!Auth.isAdmin()) window.location.href = '../index.html';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const fundId = urlParams.get('id');
+
+        async function loadTracking() {
+            if (!fundId) return alert('No Fund ID provided');
+
+            try {
+                const data = await apiRequest(`/funds/${fundId}/tracking`, 'GET', null, Auth.getToken());
+                document.getElementById('fundTitle').textContent = `Month-wise Tracking: ${data.fundName}`;
+                document.getElementById('targetInfo').textContent = `Duration: ${data.duration} Months | Monthly Target: ₹${data.monthlyTarget.toLocaleString()}`;
+
+                const header = document.getElementById('tableHeader');
+                const body = document.getElementById('trackingBody');
+
+                // 1. Inject Headers (Months)
+                if (data.tracking.length > 0) {
+                    data.tracking[0].months.forEach(m => {
+                        const th = document.createElement('th');
+                        th.className = 'grid-cell';
+                        th.textContent = m.month;
+                        header.appendChild(th);
+                    });
+                }
+
+                // 2. Inject Rows
+                body.innerHTML = data.tracking.map(user => `
+                    <tr>
+                        <td class="sticky-col">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-truncate" style="max-width: 120px;" title="${user.userName}">${user.userName}</span>
+                                <a href="user_report.html?user_id=${user.userId}&fund_id=${fundId}" target="_blank" class="btn btn-sm btn-light border-0 text-primary ms-1" title="View Member Report">
+                                    <i class="bi bi-file-earmark-bar-graph"></i>
+                                </a>
+                            </div>
+                        </td>
+                        ${user.months.map(m => `
+                            <td class="grid-cell">
+                                <div class="badge status-${m.status.toLowerCase()} w-100 py-2 rounded-3 mb-1 shadow-sm">
+                                    <div class="fw-bold fs-6">₹${m.paid.toLocaleString()}</div>
+                                </div>
+                                ${m.carryIn > 0 ? `<div class="text-success extra-small fw-bold" style="font-size: 0.6rem;">+₹${m.carryIn.toFixed(0)} Carry</div>` : ''}
+                                <div class="text-uppercase text-muted extra-small fw-bold" style="font-size: 0.55rem; letter-spacing: 0.5px;">${m.status}</div>
+                            </td>
+                        `).join('')}
+                    </tr>
+                `).join('');
+
+            } catch (err) { alert(err.message); }
+        }
+
+        loadTracking();
+    </script>
+</body>
+
+</html>

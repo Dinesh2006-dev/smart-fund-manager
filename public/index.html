@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        #roleSelection h1 {
+            color: var(--navy);
+        }
+
+        .portal-card h5 {
+            color: var(--navy);
+        }
+    </style>
+</head>
+
+<body class="bg-premium">
+    <div class="container">
+        <div class="row justify-content-center align-items-center vh-100">
+            <div class="col-md-9 col-lg-7">
+                <!-- Role Selection View -->
+                <div id="roleSelection" class="text-center animate-fade-in">
+                    <div class="mb-5">
+                        <img src="https://img.icons8.com/isometric/100/coins.png" alt="Smart Fund Logo" class="mb-3">
+                        <h1 class="display-5 fw-bold mb-2">Smart Fund</h1>
+                        <p class="text-muted fs-5">Premium Wealth Management & Collections</p>
+                    </div>
+
+                    <div class="row g-4 justify-content-center">
+                        <div class="col-6">
+                            <div class="card glass-card portal-card" onclick="showLogin('user')">
+                                <div class="card-body">
+                                    <div class="portal-icon user-portal-icon mx-auto"><i class="bi bi-wallet2"></i>
+                                    </div>
+                                    <h5 class="fw-bold mb-2">User Portal</h5>
+                                    <p class="small text-muted d-none d-md-block">Pay contributions and track your
+                                        savings progress.</p>
+                                    <button class="btn btn-outline-primary btn-sm mt-2 w-100">Enter as User</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card glass-card portal-card" onclick="showLogin('admin')">
+                                <div class="card-body">
+                                    <div class="portal-icon admin-portal-icon mx-auto"><i class="bi bi-safe2"></i></div>
+                                    <h5 class="fw-bold mb-2">Admin Portal</h5>
+                                    <p class="small text-muted d-none d-md-block">Manage funds, collectors, and overview
+                                        reports.</p>
+                                    <button class="btn btn-outline-dark btn-sm mt-2 w-100">Enter as Admin</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Login/Register Card (Hidden by default) -->
+                <div id="authCard" class="card glass-card border-0 d-none animate-fade-in">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="d-flex align-items-center mb-4">
+                            <button class="btn btn-link p-0 text-decoration-none me-3" onclick="goBack()">
+                                <i class="bi bi-arrow-left fs-4"></i>
+                            </button>
+                            <h3 id="portalTitle" class="mb-0 fw-bold">Portal</h3>
+                        </div>
+
+                        <ul class="nav nav-tabs nav-fill mb-4" id="authTabs" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active" id="login-tab" data-bs-toggle="tab"
+                                    data-bs-target="#login" type="button">Login</button>
+                            </li>
+                            <li class="nav-item" id="registerTabItem">
+                                <button class="nav-link" id="register-tab" data-bs-toggle="tab"
+                                    data-bs-target="#register" type="button">Sign Up</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <!-- Login Form -->
+                            <div class="tab-pane fade show active" id="login">
+                                <form id="loginForm">
+                                    <div class="mb-3">
+                                        <label class="form-label">Email Address</label>
+                                        <input type="email" id="email" class="form-control" required
+                                            placeholder="name@example.com">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Password</label>
+                                        <input type="password" id="password" class="form-control" required
+                                            placeholder="********">
+                                    </div>
+                                    <div class="mb-3 text-end">
+                                        <a href="#" class="small text-decoration-none" data-bs-toggle="modal"
+                                            data-bs-target="#forgotPasswordModal">Forgot Password?</a>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 py-2">Sign In</button>
+                                </form>
+                            </div>
+
+                            <!-- Register Form -->
+                            <div class="tab-pane fade" id="register">
+                                <form id="registerForm">
+                                    <div class="mb-3">
+                                        <label class="form-label">Full Name</label>
+                                        <input type="text" id="regName" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Email Address</label>
+                                        <input type="email" id="regEmail" class="form-control" required
+                                            placeholder="name@example.com">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Phone Number</label>
+                                        <input type="text" id="regPhone" class="form-control" placeholder="Optional">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Password</label>
+                                        <input type="password" id="regPassword" class="form-control" required
+                                            placeholder="********">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 py-2">Create Account</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div id="message" class="mt-3 text-center small"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reset Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Step 1: Request OTP -->
+                    <div id="otpStep1">
+                        <p class="small text-muted mb-4">Enter your email address to receive a 6-digit verification
+                            code.
+                        </p>
+                        <form id="forgotForm">
+                            <div class="mb-3">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" id="forgotEmail" class="form-control" required
+                                    placeholder="your-email@example.com">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Send OTP</button>
+                        </form>
+                    </div>
+
+                    <!-- Step 2: Verify & Reset -->
+                    <div id="otpStep2" class="d-none">
+                        <p class="small text-muted mb-4">We've sent a code to <span id="displayEmail"
+                                class="fw-bold"></span>.</p>
+                        <form id="resetForm">
+                            <div class="mb-3">
+                                <label class="form-label">Verification Code (OTP)</label>
+                                <input type="text" id="resetOTP" class="form-control" required placeholder="123456"
+                                    maxlength="6">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">New Password</label>
+                                <input type="password" id="resetNewPassword" class="form-control" required
+                                    placeholder="Enter new password">
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">Reset Password</button>
+                        </form>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-link btn-sm text-decoration-none" onclick="resendOTP()">Resend
+                                OTP</button>
+                        </div>
+                    </div>
+
+                    <div id="modalMessage" class="mt-3 text-center small"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        const messageDiv = document.getElementById('message');
+        const roleSelection = document.getElementById('roleSelection');
+        const authCard = document.getElementById('authCard');
+        const portalTitle = document.getElementById('portalTitle');
+        const registerTabItem = document.getElementById('registerTabItem');
+
+        function showLogin(role) {
+            roleSelection.classList.add('d-none');
+            authCard.classList.remove('d-none');
+            portalTitle.textContent = role === 'admin' ? 'Admin Login' : 'User Login';
+
+            // Admins can't register via this page, only users
+            if (role === 'admin') {
+                registerTabItem.classList.add('d-none');
+                document.getElementById('login-tab').click();
+                document.getElementById('email').placeholder = 'admin@example.com';
+            } else {
+                registerTabItem.classList.remove('d-none');
+                document.getElementById('email').placeholder = 'name@example.com';
+            }
+        }
+
+        function goBack() {
+            authCard.classList.add('d-none');
+            roleSelection.classList.remove('d-none');
+            messageDiv.textContent = '';
+        }
+
+        // Handle Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const data = await Auth.login(email, password);
+
+                // Verify if they are logging into the right portal
+                const currentPortalIsAdmin = portalTitle.textContent === 'Admin Login';
+                if (currentPortalIsAdmin && data.user.role !== 'admin') {
+                    throw new Error('Access denied. This portal is for Admins only.');
+                }
+                if (!currentPortalIsAdmin && data.user.role === 'admin') {
+                    // Admins are allowed in User portal technically, but we can redirect them to Admin
+                    window.location.href = 'admin/dashboard.html';
+                    return;
+                }
+
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                if (data.user.role === 'admin') {
+                    window.location.href = 'admin/dashboard.html';
+                } else {
+                    window.location.href = 'user/dashboard.html';
+                }
+            } catch (error) {
+                messageDiv.className = 'mt-3 text-center text-danger small';
+                messageDiv.textContent = error.message;
+            }
+        });
+
+        // Handle Registration
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userData = {
+                name: document.getElementById('regName').value,
+                email: document.getElementById('regEmail').value,
+                phone: document.getElementById('regPhone').value,
+                password: document.getElementById('regPassword').value,
+                role: 'user'
+            };
+
+            try {
+                await Auth.register(userData);
+                messageDiv.className = 'mt-3 text-center text-success small';
+                messageDiv.textContent = 'Account created! Please log in.';
+                setTimeout(() => {
+                    document.getElementById('login-tab').click();
+                }, 1500);
+            } catch (error) {
+                messageDiv.className = 'mt-3 text-center text-danger small';
+                messageDiv.textContent = error.message;
+            }
+        });
+
+        // Redirect if already logged in
+        if (Auth.isLoggedIn()) {
+            const user = Auth.getUser();
+            window.location.href = user.role === 'admin' ? 'admin/dashboard.html' : 'user/dashboard.html';
+        }
+
+        // --- Forgot Password Logic ---
+        const forgotForm = document.getElementById('forgotForm');
+        const resetForm = document.getElementById('resetForm');
+        const modalMessage = document.getElementById('modalMessage');
+        const otpStep1 = document.getElementById('otpStep1');
+        const otpStep2 = document.getElementById('otpStep2');
+        const displayEmail = document.getElementById('displayEmail');
+
+        // Step 1: Request OTP
+        forgotForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value;
+            modalMessage.textContent = 'Sending OTP...';
+            modalMessage.className = 'mt-3 text-center text-primary small';
+
+            try {
+                const data = await Auth.forgotPassword(email);
+
+                displayEmail.textContent = email;
+                otpStep1.classList.add('d-none');
+                otpStep2.classList.remove('d-none');
+                modalMessage.textContent = data.message || 'OTP sent successfully!';
+                modalMessage.className = 'mt-3 text-center text-success small';
+            } catch (error) {
+                modalMessage.textContent = error.message;
+                modalMessage.className = 'mt-3 text-center text-danger small';
+            }
+        });
+
+        // Step 2: Reset Password
+        resetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value;
+            const otp = document.getElementById('resetOTP').value;
+            const newPassword = document.getElementById('resetNewPassword').value;
+
+            try {
+                const data = await Auth.resetPassword(email, otp, newPassword);
+
+                modalMessage.textContent = data.message || 'Password reset successful! You can now log in.';
+                modalMessage.className = 'mt-3 text-center text-success small';
+
+                setTimeout(() => {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal'));
+                    modal.hide();
+                    // Clear forms and reset steps
+                    forgotForm.reset();
+                    resetForm.reset();
+                    otpStep1.classList.remove('d-none');
+                    otpStep2.classList.add('d-none');
+                    modalMessage.textContent = '';
+                }, 2000);
+            } catch (error) {
+                modalMessage.textContent = error.message;
+                modalMessage.className = 'mt-3 text-center text-danger small';
+            }
+        });
+
+        function resendOTP() {
+            forgotForm.dispatchEvent(new Event('submit'));
+        }
+    </script>
+</body>
+
+</html>

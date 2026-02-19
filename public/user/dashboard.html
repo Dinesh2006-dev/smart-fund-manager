@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--primary-dark) 100%);
+            padding: 1rem 0;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body class="bg-premium">
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="#">
+                <img src="https://img.icons8.com/isometric/50/coins.png" width="30" class="me-2">Smart Fund
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link active fw-medium px-3 text-white" href="dashboard.html">My
+                            Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link fw-medium px-3" href="passbook.html">My Passbook</a></li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <!-- Notifications -->
+                    <div class="dropdown me-3">
+                        <button class="btn btn-sm text-white position-relative" type="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="bi bi-bell-fill fs-5"></i>
+                            <span id="notifBadge"
+                                class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle d-none">
+                                <span class="visually-hidden">New alerts</span>
+                            </span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" id="notifList"
+                            style="width: 300px;">
+                            <li>
+                                <h6 class="dropdown-header text-uppercase small fw-bold">Notifications</h6>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li id="noNotifs" class="text-center text-muted small py-3">No new notifications</li>
+                        </ul>
+                    </div>
+
+                    <!-- User Avatar -->
+                    <div class="d-flex align-items-center me-3">
+                        <div class="text-end me-2 d-none d-md-block line-height-sm">
+                            <small class="d-block text-white-50" style="font-size: 0.75rem;">Welcome back,</small>
+                            <span id="userName" class="fw-bold text-white small">User</span>
+                        </div>
+                        <div id="userAvatar"
+                            class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
+                            style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--secondary), var(--primary)); font-size: 1.1rem;">
+                            U
+                        </div>
+                    </div>
+                    <button class="btn btn-sm text-white me-2" onclick="toggleTheme()" id="themeBtn"
+                        title="Toggle Theme">
+                        <i class="bi bi-moon-fill"></i>
+                    </button>
+                    <button class="btn btn-glass-light btn-sm px-3" onclick="Auth.logout()">
+                        <i class="bi bi-box-arrow-right me-1"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card glass-card border-0">
+                    <div class="card-body p-4">
+                        <div class="stat-icon bg-primary-light text-primary"><i class="bi bi-grid-1x2"></i></div>
+                        <div class="text-muted small fw-bold text-uppercase tracking-wider">Joined Funds</div>
+                        <h2 id="joinedFunds" class="fw-bold mb-0">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card glass-card border-0">
+                    <div class="card-body p-4">
+                        <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-graph-up-arrow"></i></div>
+                        <div class="text-muted small fw-bold text-uppercase tracking-wider">Total Paid</div>
+                        <h2 id="totalPaid" class="fw-bold mb-0 text-success">₹0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card glass-card border-0">
+                    <div class="card-body p-4">
+                        <div class="stat-icon bg-danger-subtle text-danger"><i class="bi bi-hourglass-split"></i></div>
+                        <div class="text-muted small fw-bold text-uppercase tracking-wider">Pending Balance</div>
+                        <h2 id="pendingBalance" class="fw-bold mb-0 text-danger">₹0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">My Invested Funds</h4>
+            <a href="passbook.html" class="btn btn-outline-primary btn-sm">View Passbook</a>
+        </div>
+        <div id="fundList" class="row g-3 mb-5">
+            <!-- Fund Cards will be injected here -->
+            <div class="col-md-6 skeleton-loader">
+                <div class="card glass-card border-0 h-100 p-3 skeleton-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="w-50">
+                                <div class="skeleton skeleton-text w-75 h5"></div>
+                                <div class="skeleton skeleton-text w-50 small"></div>
+                            </div>
+                            <div class="skeleton skeleton-text w-25"></div>
+                        </div>
+                        <div class="skeleton skeleton-text w-100 mb-4" style="height: 8px;"></div>
+                        <div class="row g-2 mb-4">
+                            <div class="col-6">
+                                <div class="skeleton skeleton-text w-100" style="height: 40px;"></div>
+                            </div>
+                            <div class="col-6">
+                                <div class="skeleton skeleton-text w-100" style="height: 40px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 skeleton-loader">
+                <div class="card glass-card border-0 h-100 p-3 skeleton-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="w-50">
+                                <div class="skeleton skeleton-text w-75 h5"></div>
+                                <div class="skeleton skeleton-text w-50 small"></div>
+                            </div>
+                            <div class="skeleton skeleton-text w-25"></div>
+                        </div>
+                        <div class="skeleton skeleton-text w-100 mb-4" style="height: 8px;"></div>
+                        <div class="row g-2 mb-4">
+                            <div class="col-6">
+                                <div class="skeleton skeleton-text w-100" style="height: 40px;"></div>
+                            </div>
+                            <div class="col-6">
+                                <div class="skeleton skeleton-text w-100" style="height: 40px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="mb-3">Available Funds to Join</h4>
+        <div id="availableFunds" class="row g-3 mb-5">
+            <!-- Available Funds will be injected here -->
+        </div>
+
+        <!-- Quick Payment Floating Button -->
+        <div class="position-fixed bottom-0 end-0 m-4">
+            <button class="btn btn-primary btn-lg rounded-pill shadow-lg" data-bs-toggle="modal"
+                data-bs-target="#payModal">
+                <i class="bi bi-plus-lg me-2"></i>Make Payment
+            </button>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal fade" id="payModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Deposit Money</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="paymentForm">
+                        <div class="mb-3">
+                            <label class="form-label">Select Fund</label>
+                            <select id="selFund" class="form-select" required></select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Payment Month</label>
+                            <input type="month" id="pay_month" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Payment Schedule</label>
+                            <select id="payment_schedule" class="form-select">
+                                <option value="monthly">Monthly</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="daily">Daily</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 form-check" id="payFullContainer">
+                            <input type="checkbox" class="form-check-input" id="payFullMonth">
+                            <label class="form-check-label" for="payFullMonth">Pay Full Month Balance</label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Amount (₹)</label>
+                            <input type="number" id="amount" class="form-control" required readonly
+                                placeholder="Auto-calculated">
+                            <div id="amountHelp" class="form-text text-muted">Amount is auto-calculated based on
+                                schedule.</div>
+                            <div id="dateWarning" class="form-text text-danger d-none"><i
+                                    class="bi bi-exclamation-triangle"></i> Monthly payments should be made before the
+                                10th.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Payment Mode</label>
+                            <select id="mode" class="form-select">
+                                <option value="UPI">UPI</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none">
+                            <label class="form-label">Date</label>
+                            <input type="date" id="date" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Confirm Payment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Fund Modal -->
+    <div class="modal fade" id="joinModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Enroll in Fund</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="joinForm">
+                        <input type="hidden" id="joinFundId">
+                        <div class="mb-3">
+                            <label class="form-label">Fund Name</label>
+                            <input type="text" id="joinFundName" class="form-control" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Terms & Conditions</label>
+                            <div id="joinTerms" class="form-control bg-light"
+                                style="height: 150px; overflow-y: auto; white-space: pre-wrap; font-size: 0.9em;"></div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms">
+                            <label class="form-check-label small" for="agreeTerms">I agree to the Terms &
+                                Conditions</label>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Join Fund Now</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script>
+        // Theme Logic
+        const themeBtn = document.getElementById('themeBtn');
+        const icon = themeBtn.querySelector('i');
+
+        function toggleTheme() {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.body.removeAttribute('data-theme');
+                icon.className = 'bi bi-moon-fill';
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.body.setAttribute('data-theme', 'dark');
+                icon.className = 'bi bi-sun-fill';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Init Theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+            icon.className = 'bi bi-sun-fill';
+        }
+
+        if (!Auth.isLoggedIn()) window.location.href = '../index.html';
+
+        // --- UX: Avatar & Initials ---
+        const user = Auth.getUser();
+        document.getElementById('userName').textContent = user.name;
+
+        const initials = user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        document.getElementById('userAvatar').textContent = initials;
+
+        document.getElementById('date').valueAsDate = new Date();
+
+        // Default to current month
+        const _now = new Date();
+        document.getElementById('pay_month').value = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}`;
+
+        async function loadDashboard() {
+            try {
+                const token = Auth.getToken();
+                const summary = await apiRequest('/dashboard/user/summary', 'GET', null, token);
+                const allFunds = await apiRequest('/funds', 'GET', null, token);
+
+                // --- UX: Notifications Logic ---
+                const notifList = document.getElementById('notifList');
+                const badge = document.getElementById('notifBadge');
+                const noNotifs = document.getElementById('noNotifs');
+
+                // Clear previous (keep header)
+                while (notifList.children.length > 3) {
+                    notifList.removeChild(notifList.lastChild);
+                }
+
+                let notifCount = 0;
+                const today = new Date();
+                const dayOfMonth = today.getDate();
+
+                summary.funds.forEach(f => {
+                    // Check Monthly Payment Status
+                    if (f.currentMonthBalance > 0) {
+                        // Due Soon (5th - 9th)
+                        if (dayOfMonth >= 5 && dayOfMonth < 10) {
+                            addNotification(`📅 Payment due soon for <strong>${f.name}</strong>.`, 'text-warning');
+                            notifCount++;
+                        }
+                        // Overdue (> 10th)
+                        else if (dayOfMonth >= 10) {
+                            addNotification(`⚠️ Late fee applied for <strong>${f.name}</strong>!`, 'text-danger');
+                            notifCount++;
+                        }
+                    }
+                });
+
+                if (notifCount > 0) {
+                    badge.classList.remove('d-none');
+                    noNotifs.classList.add('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                    noNotifs.classList.remove('d-none');
+                }
+
+                function addNotification(html, colorClass) {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a class="dropdown-item small text-wrap ${colorClass}" href="#">${html}</a>`;
+                    notifList.appendChild(li);
+                }
+                // -------------------------------
+
+                document.getElementById('joinedFunds').textContent = summary.fundsJoined;
+                document.getElementById('totalPaid').textContent = `₹${summary.totalPaid.toLocaleString()}`;
+                document.getElementById('pendingBalance').textContent = `₹${summary.pendingBalance.toLocaleString()}`;
+
+                // Render Invested Funds
+                const fundList = document.getElementById('fundList');
+                // Clear skeletons is implied by overwriting innerHTML, but let's be explicit if we were appending. 
+                // Since we overwrite, the skeletons disappear naturally.
+
+                if (summary.funds.length === 0) {
+                    fundList.innerHTML = '<div class="col-12"><div class="card glass-card p-5 text-center text-muted">You haven\'t joined any funds yet. Browse available funds below!</div></div>';
+                } else {
+                    fundList.innerHTML = summary.funds.map(f => `
+                        <div class="col-md-6">
+                            <div class="card glass-card border-0 h-100 p-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="fw-bold mb-1">${f.name}</h5>
+                                            <span class="badge bg-primary-light text-primary text-uppercase px-2" style="font-size: 0.65rem; letter-spacing: 0.5px;">${f.payment_schedule}</span>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="small text-muted mb-0">Target</div>
+                                            <div class="fw-bold">₹${f.total_amount.toLocaleString()}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4 d-flex align-items-center justify-content-center position-relative" style="height: 160px;">
+                                        <canvas id="chart-${f.fund_id || f.id}"></canvas>
+                                        <div class="position-absolute text-center" style="pointer-events: none;">
+                                            <div class="small text-muted fw-bold">PAID</div>
+                                            <div class="fw-bold fs-5">${Math.round(f.progress)}%</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2 mb-4">
+                                        <div class="col-6">
+                                            <div class="p-2 rounded-3 bg-light">
+                                                <div class="small text-muted mb-0">Paid</div>
+                                                <div class="fw-bold text-success small">₹${f.total_paid.toLocaleString()}</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="p-2 rounded-3 bg-light">
+                                                <div class="small text-muted mb-0">Pending</div>
+                                                <div class="fw-bold text-danger small">₹${f.pending_balance.toLocaleString()}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                        <div class="small">
+                                            <i class="bi bi-calendar3 me-1 text-primary"></i> Next: <span class="fw-bold">${f.next_due_date}</span>
+                                        </div>
+                                        ${f.overdueMonths > 0 ? `<span class="badge bg-danger rounded-pill px-3">Overdue</span>` : '<span class="badge bg-success-subtle text-success rounded-pill px-3">On Track</span>'}
+                                    </div>
+                                    
+                                    <div class="mt-3 p-3 bg-white bg-opacity-50 rounded-3 border border-white">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="small fw-medium text-muted">Next Due (Current Month)</span>
+                                            <span class="small fw-bold ${f.currentMonthBalance > 0 ? 'text-danger' : 'text-success'}">
+                                                ${f.currentMonthBalance > 0 ? `₹${f.currentMonthBalance.toLocaleString()}` : 'Paid'}
+                                            </span>
+                                        </div>
+                                        ${f.currentMonthBalance > 0 ? `
+                                            <div class="mt-3">
+                                                 <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="small fw-medium text-muted">Next Due</span>
+                                                    <span class="badge bg-primary rounded-pill">
+                                                        ${f.payment_schedule === 'weekly' ? `₹${f.recommendedWeekly}/week` :
+                                f.payment_schedule === 'daily' ? `₹${f.recommendedDaily}/day` :
+                                    `₹${f.currentMonthBalance.toLocaleString()} Due`}
+                                                    </span>
+                                                </div>
+                                                <button class="btn btn-sm btn-primary w-100 shadow-sm" onclick="openQuickPay(${f.fund_id}, '${f.name.replace(/'/g, "\\'")}')">
+                                                    <i class="bi bi-lightning-charge-fill me-1"></i> Quick Pay
+                                                </button>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    // Initialize Charts
+                    setTimeout(() => {
+                        summary.funds.forEach(f => {
+                            const canvas = document.getElementById(`chart-${f.fund_id || f.id}`);
+                            if (canvas) {
+                                new Chart(canvas.getContext('2d'), {
+                                    type: 'doughnut',
+                                    data: {
+                                        labels: ['Paid', 'Pending'],
+                                        datasets: [{
+                                            data: [f.total_paid, f.pending_balance],
+                                            backgroundColor: ['#00C853', '#E5E7EB'],
+                                            borderWidth: 0,
+                                            hoverOffset: 4
+                                        }]
+                                    },
+                                    options: {
+                                        cutout: '75%',
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: { display: false },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        return ` ₹${context.raw.toLocaleString()}`;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    }, 100);
+                }
+
+                // Render Available Funds
+                const availableFundsDiv = document.getElementById('availableFunds');
+                const joinedIds = summary.funds.map(f => f.fund_id);
+                const available = allFunds.filter(f => !joinedIds.includes(f.id) && f.status === 'active');
+
+                if (available.length === 0) {
+                    availableFundsDiv.innerHTML = '<div class="col-12"><div class="text-muted text-center py-4">No new funds available at this time.</div></div>';
+                } else {
+                    availableFundsDiv.innerHTML = available.map(f => `
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm text-center h-100">
+                                <div class="card-body d-flex flex-column h-100">
+                                    <h6 class="fw-bold">${f.name}</h6>
+                                    <p class="small text-muted mb-3">Total Amount: <strong>₹${Number(f.total_amount).toLocaleString()}</strong></p>
+                                    <div class="mt-auto">
+                                        <button class="btn btn-outline-primary btn-sm w-100" onclick="showJoinModal(${f.id}, '${f.name}')">
+                                            Join This Fund
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                // Fill select for payment
+                document.getElementById('selFund').innerHTML = summary.funds.map(f => {
+                    // Calculate monthly target (Total / Duration)
+                    const monthlyTarget = f.total_amount / f.duration;
+                    return `<option value="${f.fund_id || f.id}" data-monthly-target="${monthlyTarget}" data-next-due-month="${f.next_due_month}" data-total-paid="${f.total_paid}">${f.name}</option>`;
+                }).join('');
+
+                // Trigger initial state setup (Next Due Month + Mode Lock)
+                setTimeout(handleFundChange, 100);
+
+            } catch (error) {
+                console.error(error);
+                // Alert the user so we know if it failed
+                alert('Dashboard Error: ' + error.message);
+
+                // Fallback visual
+                document.getElementById('fundList').innerHTML = '<div class="col-12 text-center text-danger">Failed to load funds. Please refresh.</div>';
+            }
+        }
+
+        async function showJoinModal(id, name) {
+            document.getElementById('joinFundId').value = id;
+            document.getElementById('joinFundName').value = name;
+
+            // fetch terms
+            const termsDiv = document.getElementById('joinTerms');
+            const checkBox = document.getElementById('agreeTerms');
+            const joinBtn = document.querySelector('#joinForm button[type="submit"]');
+
+            termsDiv.textContent = "Loading terms...";
+            checkBox.checked = false;
+            joinBtn.disabled = true;
+
+            // Logic to enable button only when checked
+            checkBox.onclick = () => {
+                joinBtn.disabled = !checkBox.checked;
+            };
+
+            try {
+                const allFunds = await apiRequest('/funds', 'GET', null, Auth.getToken());
+                const fund = allFunds.find(f => f.id === id);
+                termsDiv.textContent = fund.terms || "No specific terms provided for this fund.";
+            } catch (err) {
+                termsDiv.textContent = "Error loading terms.";
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('joinModal'));
+            modal.show();
+        }
+
+        document.getElementById('joinForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!document.getElementById('agreeTerms').checked) {
+                alert('You must agree to the Terms & Conditions to join.');
+                return;
+            }
+
+            const data = {
+                fund_id: document.getElementById('joinFundId').value,
+                payment_schedule: 'monthly' // Default, user can choose specific mode during actual payment
+            };
+            try {
+                await apiRequest('/funds/join', 'POST', data, Auth.getToken());
+                bootstrap.Modal.getInstance(document.getElementById('joinModal')).hide();
+                loadDashboard();
+                alert('Success! You joined the fund.');
+            } catch (err) { alert(err.message); }
+        });
+
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {
+                fund_id: document.getElementById('selFund').value,
+                amount: document.getElementById('amount').value,
+                penalty: document.getElementById('amount').getAttribute('data-penalty') || 0,
+                payment_month: document.getElementById('pay_month').value,
+                payment_schedule: document.getElementById('payment_schedule').value,
+                mode: document.getElementById('mode').value,
+                payment_date: document.getElementById('date').value
+            };
+            try {
+                await apiRequest('/payments', 'POST', formData, Auth.getToken());
+
+                // Success actions
+                bootstrap.Modal.getInstance(document.getElementById('payModal')).hide();
+
+                // Fire Confetti!
+                var duration = 3 * 1000;
+                var animationEnd = Date.now() + duration;
+                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+                function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+                var interval = setInterval(function () {
+                    var timeLeft = animationEnd - Date.now();
+                    if (timeLeft <= 0) { return clearInterval(interval); }
+                    var particleCount = 50 * (timeLeft / duration);
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+                }, 250);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Payment Successful!',
+                    text: 'Your contribution has been recorded.',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+
+                loadDashboard();
+            } catch (err) { alert(err.message); }
+        });
+
+
+        // --- Payment Calculation Logic ---
+        function calculatePaymentAmount() {
+            const fundSelect = document.getElementById('selFund');
+            const scheduleSelect = document.getElementById('payment_schedule');
+            const monthInput = document.getElementById('pay_month');
+            const amountInput = document.getElementById('amount');
+            const payFullCheckbox = document.getElementById('payFullMonth');
+            const payFullContainer = document.getElementById('payFullContainer');
+            const dateWarning = document.getElementById('dateWarning');
+
+            // --- Lock Month Selection Specific Logic MOVED to handleFundChange ---
+            // Just read the values here
+            // -------------------------------------------
+
+            if (!fundSelect.value || !monthInput.value) return;
+
+            // selectedOption is needed
+            const selectedOption = fundSelect.options[fundSelect.selectedIndex];
+            const monthlyTarget = parseFloat(selectedOption.getAttribute('data-monthly-target')) || 0;
+
+            const [year, month] = monthInput.value.split('-').map(Number);
+            const daysInMonth = new Date(year, month, 0).getDate();
+
+            let finalAmount = 0;
+            const schedule = scheduleSelect.value;
+            const today = new Date();
+            const currentDay = today.getDate();
+            const isCurrentMonth = today.getFullYear() === year && (today.getMonth() + 1) === month;
+
+            // default state
+            dateWarning.classList.add('d-none');
+
+            if (schedule === 'monthly') {
+                payFullContainer.classList.add('d-none');
+                payFullCheckbox.checked = false; // Ensure it's unchecked so logic doesn't bleed
+            } else {
+                payFullContainer.classList.remove('d-none');
+            }
+
+            // Reset warning text class
+            dateWarning.className = 'form-text d-none';
+
+            if (payFullCheckbox.checked) {
+                // Logic: Remaining Balance for the *Next Due Month*
+                const totalPaid = parseFloat(selectedOption.getAttribute('data-total-paid')) || 0;
+                const paidInCurrentInterval = totalPaid % monthlyTarget;
+                let remaining = monthlyTarget - paidInCurrentInterval;
+
+                // Floating point correction
+                remaining = Math.round(remaining * 100) / 100;
+
+                // If calculated remaining is basically 0 (fully paid), it means we are starting a NEW month, so pay full target
+                if (remaining < 1) remaining = monthlyTarget;
+
+                finalAmount = remaining;
+
+            } else {
+                if (schedule === 'monthly') {
+                    finalAmount = monthlyTarget;
+
+                    // Due Date Warning Logic (Monthly < 10th)
+                    // EXCEPTION: First payment (Joining) should NOT have penalty
+                    const totalPaid = parseFloat(selectedOption.getAttribute('data-total-paid')) || 0;
+
+                    if (isCurrentMonth && currentDay > 10 && totalPaid > 0) {
+                        // Late Fee: 0.25% per day past the 10th
+                        const daysLate = currentDay - 10;
+                        const penalty = Math.ceil(monthlyTarget * (0.0025 * daysLate));
+                        const totalPayable = monthlyTarget + penalty;
+
+                        dateWarning.innerHTML = `
+                            <div class="alert alert-danger mt-2 mb-0 p-2">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i> 
+                                    <strong>Payment Overdue</strong>
+                                </div>
+                                <div class="small mb-2">
+                                    Monthly payment was due on the 10th. You are <strong>${daysLate} days late</strong>.
+                                </div>
+                                <div class="bg-white rounded p-2 text-dark">
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span>Principal Amount:</span> 
+                                        <span>₹${monthlyTarget}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-danger fw-bold mb-1">
+                                        <span>Late Fee (0.25%/day):</span> 
+                                        <span>+ ₹${penalty}</span>
+                                    </div>
+                                    <div class="border-top pt-1 mt-1 d-flex justify-content-between fw-bolder fs-6">
+                                        <span>Total to Pay:</span> 
+                                        <span>₹${totalPayable}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        dateWarning.className = 'form-text text-danger opacity-100';
+                        dateWarning.classList.remove('d-none');
+
+                        // Add penalty to final amount or show separately? 
+                        // Let's add it a data attribute so we can send it separately
+                        document.getElementById('amount').setAttribute('data-penalty', penalty);
+                    } else {
+                        document.getElementById('amount').setAttribute('data-penalty', 0);
+                    }
+                } else if (schedule === 'weekly') {
+                    // Logic: "monthlyTarget divided by no of weeks in current month"
+                    const weeksTotal = Math.ceil(daysInMonth / 7);
+                    const weeklyAmount = Math.ceil(monthlyTarget / weeksTotal);
+                    finalAmount = weeklyAmount;
+
+                    // --- Advanced Weekly Penalty Logic ---
+                    // 1. Calculate which week of the month we are currently in (1-based)
+                    // Simple approximation: Math.ceil(currentDay / 7)
+                    // Week 1: 1-7, Week 2: 8-14, etc.
+                    const currentWeekNum = Math.ceil(currentDay / 7);
+
+                    // 2. Calculate how many weeks *should* have been paid by now
+                    // If today is past Sunday of Week 1, Week 1 is overdue.
+                    // Actually, if we are in Week 2 (e.g., 11th), Week 1 must be paid.
+                    // We need to know how much has been paid TOTAL for this month.
+                    const totalPaid = parseFloat(selectedOption.getAttribute('data-total-paid')) || 0;
+                    const paidWeeks = Math.floor(totalPaid / weeklyAmount);
+
+                    // weeksDue = (Current Week Number - 1). 
+                    // E.g. If today is 11th (Week 2), 1 week should have been fully paid.
+                    // If paidWeeks < weeksDue, they are late for (weeksDue - paidWeeks) weeks.
+                    const weeksDue = currentWeekNum - 1;
+
+                    if (weeksDue > paidWeeks) {
+                        const weeksLate = weeksDue - paidWeeks;
+                        // Calculate days late. 
+                        // If we are in Week 2 (11th), and Week 1 (ended 7th) is unpaid:
+                        // Days late = Current Day - (End of Week 1 Day).
+                        // End of Week 1 = 7th. Days late = 11 - 7 = 4 days.
+                        // Simplified: Days late = currentDay - (paidWeeks * 7). 
+                        // Wait, accurate calculation:
+                        // Deadline for Week X was Day (X*7).
+                        // Deadline for the *first unpaid week* (Week "paidWeeks + 1") was Day ((paidWeeks + 1) * 7).
+                        // Days late = currentDay - ((paidWeeks + 1) * 7);
+
+                        const firstUnpaidWeekDeadline = (paidWeeks + 1) * 7;
+                        let daysLate = currentDay - firstUnpaidWeekDeadline;
+                        if (daysLate < 1) daysLate = 1; // Minimum 1 day if logic borders
+
+                        // Penalty: 0.75% per day on the *weekly amount*
+                        const penalty = Math.ceil(weeklyAmount * (0.0075 * daysLate));
+                        const totalPayable = weeklyAmount + penalty;
+
+                        dateWarning.innerHTML = `
+                            <div class="alert alert-danger mt-2 mb-0 p-2">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i> 
+                                    <strong>Payment Overdue</strong>
+                                </div>
+                                <div class="small mb-2">
+                                    You are <strong>${daysLate} days late</strong> for the week ending ${firstUnpaidWeekDeadline}th.
+                                </div>
+                                <div class="bg-white rounded p-2 text-dark">
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span>Principal Amount:</span> 
+                                        <span>₹${weeklyAmount}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-danger fw-bold mb-1">
+                                        <span>Late Fee (0.75%/day):</span> 
+                                        <span>+ ₹${penalty}</span>
+                                    </div>
+                                    <div class="border-top pt-1 mt-1 d-flex justify-content-between fw-bolder fs-6">
+                                        <span>Total to Pay:</span> 
+                                        <span>₹${totalPayable}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        dateWarning.className = 'form-text text-danger opacity-100'; // Ensure visible
+                        dateWarning.classList.remove('d-none');
+
+                        document.getElementById('amount').setAttribute('data-penalty', penalty);
+                    } else {
+                        // Not overdue for previous weeks. Check current week status.
+                        document.getElementById('amount').setAttribute('data-penalty', 0);
+
+                        const dayOfWeek = today.getDay();
+                        if (dayOfWeek === 1) {
+                            dateWarning.innerHTML = '<i class="bi bi-info-circle"></i> <strong>New Week:</strong> Payment due by Sunday.';
+                            dateWarning.className = 'form-text text-primary';
+                            dateWarning.classList.remove('d-none');
+                        } else if (dayOfWeek === 0) {
+                            dateWarning.innerHTML = '<i class="bi bi-exclamation-circle"></i> <strong>Deadline Today:</strong> Due by end of today.';
+                            dateWarning.className = 'form-text text-warning';
+                            dateWarning.classList.remove('d-none');
+                        } else {
+                            dateWarning.innerHTML = `<i class="bi bi-clock"></i> Week ${currentWeekNum} payment due by Sunday.`;
+                            dateWarning.className = 'form-text text-muted';
+                            dateWarning.classList.remove('d-none');
+                        }
+                    }
+                } else if (schedule === 'daily') {
+                    // Logic: "2500 div by current month day" -> "31 days for Jan"
+                    finalAmount = Math.ceil(monthlyTarget / daysInMonth);
+                    document.getElementById('amount').setAttribute('data-penalty', 0);
+                }
+            }
+
+            // Update input
+            amountInput.value = finalAmount;
+        }
+
+        // Attach listeners
+        document.getElementById('selFund').addEventListener('change', calculatePaymentAmount);
+        document.getElementById('payment_schedule').addEventListener('change', calculatePaymentAmount);
+        document.getElementById('pay_month').addEventListener('change', calculatePaymentAmount);
+        document.getElementById('payFullMonth').addEventListener('change', calculatePaymentAmount);
+        // ---------------------------------
+
+
+        // --- Payment Mode Locking Logic ---
+        async function checkPaymentMode() {
+            const fundId = document.getElementById('selFund').value;
+            const month = document.getElementById('pay_month').value;
+            const scheduleSelect = document.getElementById('payment_schedule');
+
+            if (!fundId || !month) return;
+
+            try {
+                // Ensure message element exists
+                if (!document.getElementById('modeMsg')) {
+                    const div = document.createElement('div');
+                    div.id = 'modeMsg';
+                    div.className = 'form-text text-info d-none';
+                    scheduleSelect.parentNode.appendChild(div);
+                }
+                const msgDiv = document.getElementById('modeMsg');
+
+                // --- NEW LOGIC: Enforce Monthly for First Payment ---
+                const selectedOption = document.getElementById('selFund').options[document.getElementById('selFund').selectedIndex];
+                const totalPaid = parseFloat(selectedOption.getAttribute('data-total-paid')) || 0;
+
+                if (totalPaid === 0) {
+                    scheduleSelect.value = 'monthly';
+                    scheduleSelect.disabled = true;
+                    msgDiv.textContent = "First month payment must be 'Monthly'.";
+                    msgDiv.className = 'form-text text-warning'; // Warning color for emphasis
+                    msgDiv.classList.remove('d-none');
+                    calculatePaymentAmount();
+                    return; // Skip API check since we are enforcing local rule
+                }
+                // ----------------------------------------------------
+
+                const res = await apiRequest(`/payments/check-mode?fund_id=${fundId}&payment_month=${month}`, 'GET', null, Auth.getToken());
+
+                if (res.mode) {
+                    scheduleSelect.value = res.mode;
+                    scheduleSelect.disabled = true;
+                    // Provide visual feedback
+                    msgDiv.textContent = `Mode locked to ${res.mode.toUpperCase()} for this month.`;
+                    msgDiv.classList.remove('d-none');
+                } else {
+                    scheduleSelect.disabled = false;
+                    msgDiv.classList.add('d-none');
+                }
+
+                // Recalculate amount after mode is essentially "selected"
+                calculatePaymentAmount();
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Attach listeners for locking
+        async function handleFundChange() {
+            const fundSelect = document.getElementById('selFund');
+            const monthInput = document.getElementById('pay_month');
+            const selectedOption = fundSelect.options[fundSelect.selectedIndex];
+
+            if (selectedOption && selectedOption.dataset.nextDueMonth) {
+                const nextMonth = selectedOption.dataset.nextDueMonth;
+                if (monthInput.value !== nextMonth) {
+                    monthInput.value = nextMonth;
+                }
+                monthInput.min = nextMonth;
+                monthInput.max = nextMonth;
+            } else {
+                monthInput.removeAttribute('min');
+                monthInput.removeAttribute('max');
+            }
+
+            // Now check mode for this new state
+            await checkPaymentMode();
+        }
+
+        // Attach listeners for locking
+        document.getElementById('selFund').addEventListener('change', handleFundChange);
+        document.getElementById('pay_month').addEventListener('change', checkPaymentMode);
+        // ---------------------------------
+
+        loadDashboard();
+
+    </script>
+</body>
+
+</html>
