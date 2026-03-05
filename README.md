@@ -1,30 +1,39 @@
 # Smart Fund Manager
 
-A comprehensive web application for managing community savings groups (Chit Funds).
+A full-stack application for managing fund contributions, payments, and tracking.
 
-## 📂 Project Structure
+## Project Structure
 
-### [`server/`](./server/README.md)
-The backend Node.js server, API routes, and database logic.
-[View detailed server documentation](./server/README.md)
+- **`client/`**: React frontend (Vite)
+- **`server/`**: Node.js/Express backend (SQLite)
 
-### [`public/`](./public/README.md)
-The frontend user interface (HTML/CSS/JS).
-[View detailed frontend documentation](./public/README.md)
+## Getting Started
 
-### `src/`
-(Inside server) Contains all source code including models, routes, and services.
+### Prerequisites
 
-## 🚀 Getting Started
+- Node.js installed
 
-1.  **Install Dependencies:**
+### Installation (The Easy Way)
+
+1.  **Install dependencies for everything:**
     ```bash
-    cd server
     npm install
     ```
-2.  **Start the Server:**
+    *(This automatically installs client, server, and root dependencies)*
+
+### Running the App
+
+1.  **Start Both Servers:**
     ```bash
     npm start
     ```
-3.  **Access the App:**
-    Open `http://localhost:5000` in your browser.
+    *(Use a single terminal. This runs client on :5173 and server on :5000)*
+
+
+## Features
+
+- User & Admin Dashboards
+- Fund Management
+- Payment Tracking (Monthly/Weekly/Daily)
+- Penalty Calculation
+- User Passbook

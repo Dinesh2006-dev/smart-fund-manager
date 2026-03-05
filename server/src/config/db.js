@@ -22,11 +22,36 @@ const initDb = async () => {
                 table.string('password').notNullable();
                 table.string('role').defaultTo('user'); // admin or user
                 table.string('phone');
+                table.decimal('wallet_balance').defaultTo(0);
                 table.string('reset_otp').nullable();
                 table.timestamp('reset_otp_expiry').nullable();
                 table.timestamps(true, true);
             });
             console.log('Users table created');
+        } else {
+            // Check if wallet_balance exists, if not add it
+            const hasWalletBalance = await db.schema.hasColumn('users', 'wallet_balance');
+            if (!hasWalletBalance) {
+                await db.schema.table('users', (table) => {
+                    table.decimal('wallet_balance').defaultTo(0);
+                });
+                console.log('Added wallet_balance to existing users table');
+            }
+        }
+
+        // Wallet Transactions Table
+        const hasWalletTransactions = await db.schema.hasTable('wallet_transactions');
+        if (!hasWalletTransactions) {
+            await db.schema.createTable('wallet_transactions', (table) => {
+                table.increments('id').primary();
+                table.integer('user_id').references('id').inTable('users').onDelete('CASCADE');
+                table.decimal('amount').notNullable();
+                table.string('type').notNullable(); // deposit, withdrawal, payment
+                table.string('description');
+                table.timestamp('transaction_date').defaultTo(db.fn.now());
+                table.timestamps(true, true);
+            });
+            console.log('Wallet_transactions table created');
         }
 
         // Funds Table

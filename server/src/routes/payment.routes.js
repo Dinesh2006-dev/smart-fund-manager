@@ -57,23 +57,57 @@ router.post('/', auth, async (req, res) => {
         }
         // -------------------------------------------------------------
 
-        // 1. Record the payment
-        const [paymentId] = await db('payments').insert({
-            user_id: finalUserId,
-            fund_id,
-            amount,
-            penalty: req.body.penalty || 0, // Store penalty
-            payment_date,
-            payment_month: finalMonth,
-            payment_schedule: payment_schedule || 'monthly',
-            mode,
-            notes
-        });
+        // --- Transactional Payment Processing ---
+        const trx = await db.transaction();
+        try {
+            // If paying via Wallet, check and deduct balance
+            if (mode === 'Wallet') {
+                const user = await trx('users').where({ id: finalUserId }).first();
+                const totalDebit = Number(amount) + Number(req.body.penalty || 0);
 
-        // 2. Sync balances using the Source of Truth engine
-        await balanceService.syncEnrollment(finalUserId, fund_id);
+                if (!user || Number(user.wallet_balance || 0) < totalDebit) {
+                    await trx.rollback();
+                    return res.status(400).json({ message: 'Insufficient wallet balance for this transaction' });
+                }
 
-        res.status(201).json({ message: 'Payment recorded and balance updated', paymentId });
+                // Deduct from wallet
+                await trx('users').where({ id: finalUserId }).update({
+                    wallet_balance: Number(user.wallet_balance) - totalDebit
+                });
+
+                // Record wallet transaction
+                await trx('wallet_transactions').insert({
+                    user_id: finalUserId,
+                    amount: -totalDebit,
+                    type: 'payment',
+                    description: `Payment for ${finalMonth} - ${req.body.fund_name || 'Fund'}`,
+                    transaction_date: db.fn.now()
+                });
+            }
+
+            // 1. Record the payment
+            const [paymentId] = await trx('payments').insert({
+                user_id: finalUserId,
+                fund_id,
+                amount,
+                penalty: req.body.penalty || 0,
+                payment_date,
+                payment_month: finalMonth,
+                payment_schedule: payment_schedule || 'monthly',
+                mode,
+                notes
+            });
+
+            await trx.commit();
+
+            // 2. Sync balances using the Source of Truth engine
+            await balanceService.syncEnrollment(finalUserId, fund_id);
+
+            res.status(201).json({ message: 'Payment recorded and balance updated', paymentId });
+        } catch (error) {
+            await trx.rollback();
+            throw error;
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error processing payment' });

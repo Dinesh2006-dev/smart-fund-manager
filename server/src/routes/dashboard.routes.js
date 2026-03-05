@@ -132,10 +132,38 @@ router.get('/user/summary', auth, async (req, res) => {
             };
         }));
 
+        // --- Portfolio Analytics (NEW) ---
+        // 1. Growth Data (Cumulative Payments over time)
+        const growthData = await db('payments')
+            .where({ user_id: userId })
+            .select('payment_month')
+            .sum('amount as monthly_total')
+            .groupBy('payment_month')
+            .orderBy('payment_month', 'asc');
+
+        let cumulative = 0;
+        const formattedGrowth = growthData.map(d => {
+            cumulative += Number(d.monthly_total);
+            return {
+                month: d.payment_month,
+                value: cumulative
+            };
+        });
+
+        // 2. P&L Calculation (Hypothetical 8% APY for visualization)
+        // In a real app, this would be based on actual fund performance/yield
+        const totalInvestment = totalPaid;
+        const averageReturnRate = 0.08; // 8% APY
+        const estProfit = totalInvestment * (averageReturnRate / 12) * growthData.length;
+        const profitLoss = estProfit > 0 ? estProfit : 0;
+
         res.json({
             fundsJoined: fundsJoined.count,
             totalPaid,
             pendingBalance,
+            profitLoss: Number(profitLoss.toFixed(2)),
+            performanceRate: (averageReturnRate * 100).toFixed(1),
+            growthChart: formattedGrowth,
             funds: enrichedFunds
         });
     } catch (error) {

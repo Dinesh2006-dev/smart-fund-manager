@@ -149,15 +149,28 @@ router.post('/join', auth, async (req, res) => {
             return res.status(404).json({ message: 'Fund not found or closed' });
         }
 
-        // Check if already joined
+        // Check if already joined (Block re-join if record exists, even if withdrawn)
         const existing = await db('user_funds').where({ user_id, fund_id }).first();
         if (existing) {
-            console.log(`[Join] User ${user_id} already joined fund ${fund_id}`);
-            return res.status(400).json({ message: 'You have already joined this fund' });
+            if (existing.status === 'withdrawn') {
+                return res.status(400).json({ message: 'You have previously withdrawn from this fund and cannot re-join.' });
+            }
+            return res.status(400).json({ message: 'You have already joined this fund.' });
         }
 
-        console.log(`[Join] Inserting record for User ${user_id}, Fund ${fund_id}`);
-        const [id] = await db('user_funds').insert({
+        // Calculate catch-up installments
+        const startDate = new Date(fund.start_date);
+        const today = new Date();
+        let monthsPassed = (today.getFullYear() - startDate.getFullYear()) * 12 + (today.getMonth() - startDate.getMonth());
+        monthsPassed = Math.max(0, Math.min(monthsPassed, fund.duration));
+
+        const monthlyInstallment = Number(fund.total_amount) / Number(fund.duration);
+        const catchupAmount = monthsPassed * monthlyInstallment;
+
+        console.log(`[Join] User ${user_id}, Fund ${fund_id}, Catch-up: ${monthsPassed} months, Amount: ₹${catchupAmount}`);
+
+        // 1. Insert Enrollment
+        const [enrollmentId] = await db('user_funds').insert({
             user_id,
             fund_id,
             total_paid: 0,
@@ -165,9 +178,28 @@ router.post('/join', auth, async (req, res) => {
             payment_schedule: payment_schedule || 'monthly',
             status: 'active'
         });
-        console.log(`[Join] Inserted record ID: ${id}`);
 
-        res.status(201).json({ message: 'Successfully joined the fund' });
+        // 2. If catch-up needed, record payment
+        if (catchupAmount > 0) {
+            const currentMonth = today.toISOString().slice(0, 7);
+            await db('payments').insert({
+                user_id,
+                fund_id,
+                amount: catchupAmount,
+                payment_date: db.fn.now(),
+                payment_month: currentMonth,
+                notes: `Opening catch-up payment for ${monthsPassed} months missed.`
+            });
+
+            // Sync immediately
+            await balanceService.syncEnrollment(user_id, fund_id);
+        }
+
+        res.status(201).json({
+            message: 'Successfully joined the fund',
+            catchupMonths: monthsPassed,
+            catchupAmount
+        });
     } catch (error) {
         console.error('[Join] Error:', error);
         res.status(500).json({ message: 'Error joining fund' });
@@ -188,6 +220,62 @@ router.delete('/:id', auth, admin, async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting fund', error: error.message });
+    }
+});
+
+// Emergency Withdrawal (Apply 2% fee)
+router.post('/withdraw', auth, async (req, res) => {
+    try {
+        const { fund_id, amount } = req.body;
+        const user_id = req.user.id;
+        const withdrawalAmount = Number(amount);
+
+        if (!withdrawalAmount || withdrawalAmount <= 0) {
+            return res.status(400).json({ message: 'Invalid withdrawal amount' });
+        }
+
+        // 1. Get Enrollment & Total Paid
+        const enrollment = await db('user_funds').where({ user_id, fund_id }).first();
+        if (!enrollment) {
+            return res.status(404).json({ message: 'You are not enrolled in this fund' });
+        }
+
+        if (withdrawalAmount > Number(enrollment.total_paid)) {
+            return res.status(400).json({ message: 'Insufficient balance in fund' });
+        }
+
+        // 2. Calculate 10% Fee
+        const fee = withdrawalAmount * 0.10;
+        const payout = withdrawalAmount - fee;
+
+        // 3. Record "Negative Payment" (Debit) to reduce balance
+        // We use current month for tracking
+        const currentMonth = new Date().toISOString().slice(0, 7);
+
+        await db('payments').insert({
+            user_id,
+            fund_id,
+            amount: -withdrawalAmount, // Negative amount to deduct from ledger
+            payment_date: db.fn.now(),
+            payment_month: currentMonth,
+            notes: `Emergency Withdrawal: Payout ₹${payout.toFixed(2)} (Fee ₹${fee.toFixed(2)})`
+        });
+
+        // 4. Update status to 'withdrawn' and sync balance
+        await db('user_funds')
+            .where({ user_id, fund_id })
+            .update({ status: 'withdrawn' });
+
+        await balanceService.syncEnrollment(user_id, fund_id);
+
+        res.status(200).json({
+            message: 'Withdrawal successful',
+            payout: Number(payout.toFixed(2)),
+            fee: Number(fee.toFixed(2))
+        });
+    } catch (error) {
+        console.error('[Withdraw] Error:', error);
+        res.status(500).json({ message: 'Error processing withdrawal' });
     }
 });
 
